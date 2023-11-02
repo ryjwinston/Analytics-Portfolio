@@ -1,0 +1,239 @@
+---
+title: "County Graduation Rates"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+#A - Load the dataset and describe the data including the following:
+#Data type and structure
+#Statistical summary of all attributes
+#Breakdown of the data by variables
+
+#load data
+
+library("readxl")
+counties = read_excel("US Counties.xlsx")
+```
+```{r}
+#data type and structure
+
+#columns, head, tail
+
+names(counties)
+head(counties)
+tail(counties)
+```
+```{r}
+#typeof, summary
+
+typeof(counties)
+str(counties)
+
+#2 variables are character strings. 7 are binary. the rest are numerical
+```
+```{r}
+#rename columns with %. 5-10, 15-17, 19, 22, 24
+
+colnames(counties)[5] ="PopChgPct"
+colnames(counties)[6] ="HispanPct"
+colnames(counties)[7] ="Under5Pct"
+colnames(counties)[8] ="Age65to75Pct"
+colnames(counties)[9] ="BlackPct"
+colnames(counties)[10] ="AsianPct"
+colnames(counties)[15] ="PovertyPct"
+colnames(counties)[16] ="CrimesV"
+colnames(counties)[17] ="CrimesP"
+colnames(counties)[19] ="ViolentPct"
+colnames(counties)[22] ="ServicesPct"
+colnames(counties)[24] ="FarmPct"
+```
+```{r}
+#create susbet with only non-binary variables
+
+countysub = subset(counties,select=c(County,State,Popul,PopDen,PopChgPct,HispanPct,Under5Pct,Age65to75Pct,BlackPct,AsianPct,BirthRate,HSGrad,ColGrad,IncomeHH,PovertyPct,CrimesV,CrimesP,CrimeRate,ViolentPct,Unempt,PersIncome,ServicesPct,WaterUse,FarmPct))
+
+#summary
+summary(countysub)
+```
+```{r}
+#locate missing values
+which(is.na(countysub))
+
+# finds the count of missing values 
+sum(is.na(countysub))
+
+#lots of missing values. will address later on
+```
+```{r}
+#rename columns with %. 5-10, 15-17, 19, 22, 24
+
+colnames(countysub)[5] ="PopChgPct"
+colnames(countysub)[6] ="HispanPct"
+colnames(countysub)[7] ="Under5Pct"
+colnames(countysub)[8] ="Age65to75Pct"
+colnames(countysub)[9] ="BlackPct"
+colnames(countysub)[10] ="AsianPct"
+colnames(countysub)[15] ="PovertyPct"
+colnames(countysub)[16] ="CrimesV"
+colnames(countysub)[17] ="CrimesP"
+colnames(countysub)[19] ="ViolentPct"
+colnames(countysub)[22] ="ServicesPct"
+colnames(countysub)[24] ="FarmPct"
+```
+```{r}
+#show new columns
+
+names(countysub)
+```
+```{r}
+#B - Visualize the data for the top 10 most populated counties including: 
+#Frequency / distribution plots for non-binary integer variables 
+#Univariate and Multivariate plots
+
+#rank top 10 counties by population limit to 10
+
+head(countysub[order(countysub$Popul, decreasing= T),], n = 10)
+```
+```{r}
+#create new df with only necessary columns
+countysub2 = subset(countysub, select=c(County, State, Popul, ColGrad, PersIncome, CrimeRate))
+
+head(countysub2)
+```
+```{r}
+#recheck and delete missing values
+
+which(is.na(countysub2))
+sum(is.na(countysub2))
+```
+```{r}
+#delete missing values
+countysubomit = na.omit(countysub2)
+
+head(countysubomit)
+```
+
+
+```{r}
+#show top 10 without missing values
+
+head(countysubomit[order(countysubomit$Popul, decreasing= T),], n = 10)
+```
+```{r}
+#save top 10 as new df
+
+countytop10 = head(countysubomit[order(countysubomit$Popul, decreasing= T),], n = 10)
+```
+```{r}
+#attach top 10 df
+
+attach(countytop10)
+```
+```{r}
+#distributions for College Grad Rate, Crime Rate, and Per Capita Income
+
+hist(ColGrad)
+hist(CrimeRate)
+hist(PersIncome)
+```
+```{r}
+#bar charts
+
+barplot(ColGrad,names.arg=County,ylab="College Grad Pct",col="blue",
+main="College Graduates By County", cex.names=0.8, las=2,  ylim = c(10, 30))
+
+barplot(CrimeRate,names.arg=County,ylab="Number of Crimes",col="blue",
+main="Crimes By County", cex.names=0.8,las=2)
+
+barplot(PersIncome,names.arg=County,ylab="Per Capita Income",col="blue",
+main="Per Capita Income By County", cex.names=0.8,las=2, ylim = c(20000, 35000))
+```
+```{r}
+#scatterplots
+
+plot(ColGrad,CrimeRate,pch=16,ylab="Crime Rate",xlab="College Graduation Rate", col='red')
+
+plot(PersIncome,CrimeRate,pch=16,ylab="Crime Rate",xlab="Per Capita Income", col='red')
+
+plot(PersIncome,ColGrad,pch=16,ylab="College Graduation Rate",xlab="Per Capita Income", col='red')
+```
+```{r}
+#C - Inferential Analysis 
+
+#Conduct correlation analysis for the 10 most populated counties between college graduation vs per capita income, and crime rate (total) vs per capita income.
+
+#Based on the above analysis, perform regression analysis for the same variables and comment on the statistical significance of your findings. 
+
+#Make sure to include diagnostic plots for your regression analysis and provide brief comments on your observations of the residual plot and 'Normal Q-Q' plot only.
+```
+```{r}
+#correlation analysis
+#colgrad vs persincome
+#crime rate vs persincome
+
+#create subset for correlations
+
+countycorr = subset(countytop10, select=c(ColGrad, PersIncome, CrimeRate))
+
+#show correlation subset
+
+head(countycorr)
+```
+```{r}
+#corr table
+
+round(cor(countycorr), 2)
+
+#very strong correlation between per capita income and college graduates. Not necessarily easy to tell which causes which. college graduation can lead to higher income, but higher income can lead to more educational opportunities.
+
+#Negligible correlation between crime rate and per capita income
+```
+```{r}
+#corr heatmap
+
+library("RColorBrewer")
+
+heatmap(cor(countycorr), Colv = NA, Rowv = NA, scale="column", col = brewer.pal(11,"RdBu"), cexRow=0.8, cexCol = 0.8)
+
+#heatmap not very useful in R for this. also there are a limited number of variables to be useful for heat mapping
+```
+```{r}
+#regression analysis
+
+#univariate
+summary(lm(CrimeRate ~ PersIncome, data = countycorr))
+summary(lm(ColGrad ~ PersIncome, data = countycorr))
+
+#based on adjusted R2 values, personal income is a much better predictor of graduation rate than it is for crime rate
+```
+```{r}
+#residual plots
+
+plot(PersIncome,CrimeRate,pch=16,ylab="Crime",xlab="Income Per Capita")
+abline(lm(CrimeRate~PersIncome)) 
+
+plot(PersIncome,ColGrad,pch=16,ylab="College Graduation Rate",xlab="Income Per Capita")
+abline(lm(ColGrad~PersIncome)) 
+
+#residual plots do a fantastic job of showing the relationships between variables. Graphically, it is clear that Graduation rate is more closely tied to income per capita than crime rate is
+```
+```{r}
+#normal Q-Q plots
+
+#Per capita income
+qqnorm(countycorr$PersIncome, pch = 16, main = "Per Capita Income")
+qqline(countycorr$PersIncome, lwd = 2)
+
+#crime rate
+qqnorm(countycorr$CrimeRate, pch = 16, main = "Crime Rate")
+qqline(countycorr$CrimeRate, lwd = 2)
+
+#college graduation
+qqnorm(countycorr$ColGrad, pch = 16, main = "College Graduation")
+qqline(countycorr$ColGrad, lwd = 2)
+
+#QQ Normality plots show that the data points are relatively close to the QQ line. This means we can assume normal distribution and that our data leads to valid results
+```
+
+
